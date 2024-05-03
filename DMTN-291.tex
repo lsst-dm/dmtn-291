@@ -1,0 +1,77 @@
+\documentclass[DM,authoryear,toc]{lsstdoc}
+\input{meta}
+
+% Package imports go here.
+
+% Local commands go here.
+
+%If you want glossaries
+%\input{aglossary.tex}
+%\makeglossaries
+
+\title{DM Plans for Wavelength-Dependent PSFs and Astrometry}
+
+% This can write metadata into the PDF.
+% Update keywords and author information as necessary.
+\hypersetup{
+    pdftitle={DM Plans for Wavelength-Dependent PSFs and Astrometry},
+    pdfauthor={Jim Bosch},
+    pdfkeywords={}
+}
+
+% Optional subtitle
+% \setDocSubtitle{A subtitle}
+
+\author{%
+Jim Bosch
+}
+
+\setDocRef{DMTN-291}
+\setDocUpstreamLocation{\url{https://github.com/lsst-dm/dmtn-291}}
+
+\date{\vcsDate}
+
+% Optional: name of the document's curator
+% \setDocCurator{The Curator of this Document}
+
+\setDocAbstract{%
+Rubin observations will be affected by differential chromatic refraction (DCR) and other chromatic PSFs at a level that will impact our science goals if left unmitigated, in at least some bands.  This technote describes how we will model these effects and what that means for the data products that science users will see.
+}
+
+% Change history defined here.
+% Order: oldest first.
+% Fields: VERSION, DATE, DESCRIPTION, OWNER NAME.
+% See LPM-51 for version number policy.
+\setDocChangeRecord{%
+  \addtohist{1}{YYYY-MM-DD}{Unreleased.}{Jim Bosch}
+}
+
+
+\begin{document}
+
+% Create the title page.
+\maketitle
+% Frequently for a technote we do not want a title page  uncomment this to remove the title page and changelog.
+% use \mkshorttitle to remove the extra pages
+
+% ADD CONTENT HERE
+% You can also use the \input command to include several content files.
+
+\appendix
+% Include all the relevant bib files.
+% https://lsst-texmf.lsst.io/lsstdoc.html#bibliographies
+\section{References} \label{sec:bib}
+\renewcommand{\refname}{} % Suppress default Bibliography section
+\bibliography{local,lsst,lsst-dm,refs_ads,refs,books}
+
+% Make sure lsst-texmf/bin/generateAcronyms.py is in your path
+\section{Acronyms} \label{sec:acronyms}
+\input{acronyms.tex}
+% If you want glossary uncomment below -- comment out the two lines above
+%\printglossaries
+
+
+
+
+
+\end{document}
