@@ -238,9 +238,8 @@ This is straightforward in theory: fit a PSF-convolved model to one or more imag
 This should be quite doable (but expensive at scale) on sets of single-visit images.
 The PSF model is considered part of any Rubin image data product, and that includes its wavelength dependence.
 
-Unfortunately, the same is not true of coadds; while the effective coadd PSF does depend on wavelength, much of the statistical information about the sub-band SEDs is lost in the coaddition process.
+This approach will also work on coadds, but some of the statistical information about the sub-band SEDs is lost in the coaddition process (and how much depends on details of the observations).
 This is true even for coadds built using the ``optimal'' Kaiser algorithm \citep{dmtn-015,Kaiser04,2017ApJ...836..188Z}, which is a sufficient statistic for the input images only when wavelength dependence and variability are ignored.
-A generalization of that algorithm to wavelength-dependent PSFs and objects may be possible, but is well beyond the state of the art.
 
 At present, we have no planned catalog columns that could be used for this sort of inference, but there may be quantities that would be both cheap to compute and easy to implement that we could add, if they would be useful to the science community.
 We are already fitting a PSF model at the position of every Object on every overlapping visit, since that's what will populate the Forced Source table.
@@ -248,6 +247,7 @@ We may be able to also compute the derivatives of the log likelihood of that fit
 This may not qualify as ``cheap'', however; PSF model evaluations are at least moderately expensive, and widening the Forced Source table to include them would represent a huge increase in our database storage costs, because there are so many Forced Source rows.
 Those derivatives could be summed and included in the Object table instead (derivatives, like convolutions, are linear operators, so they coadd correctly), which would make the storage increase temporary.
 But this would still probably need a strong science justification to be considered.
+A similar operation on coadds would be much less expensive and almost certainly would qualify as ``cheap'', and what we'd need from the community would be some simulation or analytical work to see whether such a measurement has enough S/N to be useful.
 
 \appendix
 % Include all the relevant bib files.
