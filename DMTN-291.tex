@@ -174,7 +174,8 @@ We expect the initial DCR correction here to be sufficient to determine the fina
 \end{itemize}
 If this assumption proves false, we could insert another round of astrometric fitting later in the pipeline to address both of these issues.
 
-This approach to DCR in astrometric calibration is the standard approach, and while we do not yet have it all running, the code we are using is at its core the same used in DECam astrometric calibrations \citep{2017PASP..129g4503B}, and we expect it to be working by DP2 (and possibly DP1, if any multi-epoch processing happens there at all).
+This approach to DCR in astrometric calibration is the standard approach, and while we do not yet have it all running, the code we are using is at its core the same used in DECam astrometric calibrations \citep{2017PASP..129g4503B}. 
+We currently envisage having this working on the multi-epoch DP2 dataset. 
 
 \subsection{Final PSF Modeling}
 
@@ -198,7 +199,7 @@ Coadds will be built in small cells, over which the set of input visits is fixed
 This allows us the coadd the PSF model images with the same weights as the input visit images to form a piecewise-constant coadd PSF model.
 The wavelength dependence of the PSF will be included, for example by also coadding the derivative of the PSF model with respect to one or more parameters that represent the SED.
 Cell-based coaddition (including PSF coaddition) has been implemented but is still being tested prior to full integration with the main pipeline.
-We fully expect this to be the coaddition method used for DP2 (and, if coadds are built, DP1).
+We fully expect this to be the coaddition method used for DP2. 
 
 \subsection{Inferring SEDs}
 
