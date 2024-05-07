@@ -162,7 +162,7 @@ In practice, we expect the centering SED to be a hard-to-back-out average over t
 
 The first steps of the Rubin Data Release Production (DRP) pipelines include inferring preliminary coordinate transforms and PSF models without any attention to sub-band chromaticity.
 This generates lists of preliminary sources that are then spatially matched to each other and the Gaia catalog, and fed to our multi-epoch photometric and astrometric calibration routines.
-For the astrometric calibration we are focused on here, this is expected to run on large sky tiles (at least the size of the full focal plane) and include measurements all visits that overlap that tile.
+For the astrometric calibration we are focused on here, this is expected to run on large sky tiles (at least the size of the full focal plane) and include measurements of all visits that overlap that tile.
 The coordinate transform model will include static or nearly static optical and sensor-level distortion models that are fit in advance, composed with pointing, rotation, and atmospheric turbulence terms for each visit.
 The true positions, proper motions, and parallaxes of the input stars are inferred during this fit as well, and here we expect to include a catalog-space preliminary DCR correction as well.
 Gaia positions, proper motions, and parallaxes are included as a constraint in the fit (with their uncertanties), which is what sets the absolute astrometry and allows us to rigorously tie different sky tiles together.
