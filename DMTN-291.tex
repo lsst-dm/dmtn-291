@@ -36,7 +36,7 @@ Jim Bosch
 % \setDocCurator{The Curator of this Document}
 
 \setDocAbstract{%
-Rubin observations will be affected by differential chromatic refraction (DCR) and other chromatic PSFs at a level that will impact our science goals if left unmitigated, in at least some bands.
+Rubin observations will be affected by differential chromatic refraction (DCR) and other chromatic PSF effects at a level that will impact our science goals if left unmitigated, in at least some bands.
 This technical note describes how we will model these effects and what that means for the data products that science users will see.
 }
 
@@ -85,7 +85,7 @@ The value $z$ at some position $\mathbf{x}$ on a detector is related to the true
 \end{equation}
 
 The normalization of $\Psi$ is the photometric calibration, which we'll call $\alpha$.
-Its dependence on $\mathbf{r}$ and $\mathbf{x}$ encodes both the PSF $\phi$ and the coordinate transform $\mathbf{A}$ from sky to pixel coordinates (frequently called the WCS, or ``world coordinate system''), i.e. we approximate [\ref{eqn:transfer-fn}] \emph{locally} as either
+Its dependence on $\mathbf{r}$ and $\mathbf{x}$ encodes both the PSF $\phi$ and the coordinate transform $\mathbf{A}$ from pixel to sky coordinates (frequently called the WCS, or ``world coordinate system''), i.e. we approximate [\ref{eqn:transfer-fn}] \emph{locally} as either
 
 \begin{equation}
   z(\mathbf{x}) =  \int\!\! d^2 \mathbf{r} \int\!\! d\!\lambda
@@ -119,7 +119,7 @@ We believe this is the only way to resolve the degeneracy that is feasible for i
 This is not to say that a wavelength-dependent coordinate transform is never useful -- it can be for catalog-space operations, and this is probably the more common approach for dealing with DCR in astrometry.
 But for the most part, we prefer to have one convention for how to decompose the wavelength-dependent transfer function, and a wavelength-dependent spatially varying PSF and achromatic coordinate transform are the clear choice, as this is valid throughout the full pipeline.
 
-For the rest of this note, we will thus drop the wavelength dependence on $S$, in addition to representing its local affine version in augmented matrix form, i.e.:
+For the rest of this note, we will thus drop the wavelength dependence on $A$, in addition to representing its local affine version in augmented matrix form, i.e.:
 \begin{equation}
   \mathbf{r} = \mathbf{A} \mathbf{x}
 \end{equation}
@@ -154,9 +154,9 @@ Instead, evaluating the PSF model for an observation at the true coordinates of 
 On a coadd constructed with many observations with the zenith direction rotated, the effective coadd PSF will be the weighted sum of those directionally-smeared single-epoch PSFs \citep{2023OJAp....6E...5M}, and hence be spread out in all directions (in the limit of many zenith direction rotations).
 
 A corollary of this is that the PSF model \emph{is} centered for \emph{some} SEDs, which we will refer to as ``centering SEDs``.
-For [\ref{eqn:decomposition-final}] to hold on a coadd, we also need the coadd coordinate system to have a wavelength-independent transform from its pixel coordinates to sky coordinates, and that means the centering SED must be the same for all input observations to the coadd.
-On the other hand, our decomposition of the transform is only ever a local one, and we do not necessarily need the centering SED to be the same everywhere on the coadd, and we don't even need to know what it is, as long as  all measurements correctly account for the PSF.
-In practice, we expect the centering SED to be a hard-to-back-out average over the SEDs of the stars that go into our astrometric fitting.
+For [\ref{eqn:decomposition-final}] to hold on a coadd, we also need the coadd coordinate system to have a wavelength-independent transform from its pixel coordinates to sky coordinates, and that means here must be at least one SED that centers the PSF for all input observations to the coadd.
+On the other hand, our decomposition of the transform is only ever a local one, and we do not necessarily need the centering SED to be the same everywhere on the coadd, and we don't even need to know what it is, as long as all measurements correctly account for the PSF.
+In practice, we expect the centering SED to be a hard-to-back-out average over the SEDs of the stars that go into our astrometric fitting, and that this will be common to all input observations to good approximation because the same stars appear in all observations of each patch of sky with roughly the same relative SNRs.
 
 \section{Chromatic Corrections in the Pipelines}
 
@@ -177,8 +177,7 @@ We expect the initial DCR correction here to be sufficient to determine the fina
 If this assumption proves false, we could insert another round of astrometric fitting later in the pipeline to address both of these issues.
 We are not currently planning to derive the colors used to infer SEDs from the Gaia catalog at all.
 
-This approach to DCR in astrometric calibration is the standard approach, and while we do not yet have it all running, the code we are using is at its core the same used in DECam astrometric calibrations \citep{2017PASP..129g4503B}. 
-We currently envisage having this working on the multi-epoch DP2 dataset. 
+This approach to DCR in astrometric calibration is the standard approach, and while we do not yet have all aspects of the above running, the code we are using is at its core the same used in DECam astrometric calibrations \citep{2017PASP..129g4503B}.
 
 \subsection{Final PSF Modeling}
 
@@ -193,26 +192,24 @@ Even if a full physical model is not competitive with an empirical model (they h
 In any case, PSF modeling always requires careful tuning for any new survey, and sub-band wavelength dependence is very new to the field.
 To our knowledge using projected model positions rather than per-visit centroids has not been tried before, and it may prove difficult for unexpected reasons.
 The same is true of an explicit DCR term.
-We hope to have this step working by DR1, but given the compressed commissioning timeline and the difficulty of making real progress before LSSTCam data is available, this is hard to guarantee.
 
 \subsection{Coaddition}
 
 With the PSF models and coordinate transforms finalized, we can build coadds by resampling the single-visit images to a predefined grid, and taking their weighted average (some artifact rejection also happens at this stage, but that's beyond the scope of this note).
 Coadds will be built in small cells, over which the set of input visits is fixed (visits that only partially overlap a cell are not included) and the PSF can be assumed to be spatially constant.
-Treating the PSF as constant in a cell is not a fundamental requirement of this algorithm, but making cells small enough to make this a valid assumption is probably easier than propagating PSF spatial variation through to the coadds.
+Treating the PSF as constant in a cell is not a fundamental requirement of this algorithm, but making cells small enough to make this assumption valid is probably easier than propagating PSF spatial variation through to the coadds.
 If the PSF were achromatic, this would allow us to the coadd the PSF model images with the same weights as the input visit images to form a piecewise-constant coadd PSF model.
 For a chromatic PSF, we can do the same, as long as we can capture the per-cell PSF's wavelength dependence in some basis expansion, allowing us to coadd the basis functions the same way.
-For example, this could mean coadding a flat-spectrum PSF image along the images that represent the derivatives of the PSF model with respect to a broad-band color.
+For example, this could mean coadding a flat-spectrum PSF image along with the images that represent the derivatives of the PSF model with respect to a broad-band color.
 Cell-based coaddition (including PSF coaddition) has been implemented but is still being tested prior to full integration with the main pipeline.
-We fully expect this to be the coaddition method used for DP2.
 An extremely similar approach is being used for shear estimation in DES Y6 analysis.
 
 \subsection{Inferring SEDs}
 
 In order to use a chromatic PSF model (or a chromatic photometric calibration), we need to infer the SEDs of the objects we're measuring, and unlike previous stages this now includes galaxies, QSOs, supernovae, and other astrophysical objects whose SEDs are much more complex than stars.
-Our goal for SED inference is to have a simple, easily-reproducible mapping from broadband colors to SED, and to attempt to transition smoothly from something extremely simple (e.g. splines, step functions) for most objects to standard stellar SED models for objects that have a high probability of being a star.
+Our goal for SED inference is to have an easily-reproducible mapping from broadband colors to SED, and to attempt to transition smoothly from something extremely simple (e.g. splines, step functions) for most objects to standard stellar SED models for objects that have a high probability of being a star.
 In particular, we do not currently plan to perform a full photometric redshift analysis to infer the SEDs of galaxies prior to performing PSF-based measurements on them, because PSF-corrected photometry is used as an \emph{input} to the photometric redshifts we (and others) will ultimately produce.
-Instead, we will provide tools to allow users to reevaluate object measurements using user-provided SEDs (though this may be much more expensive to revisit the PSF than the photometric calibration).
+Instead, we will provide tools to allow users to reevaluate object measurements using user-provided SEDs (though it may be much more expensive to revisit the PSF than the photometric calibration).
 This is discussed further in Section~\ref{sec:sub-band-sed-inference}.
 
 For Objects and Forced Sources, we will measure rough preliminary colors to 5-sigma depth on coadds (probably as part of the deblender, which naturally runs over all bands at once) to infer SEDs.
@@ -223,6 +220,7 @@ Shear Objects (a special catalog focused on shear estimation for weak gravitatio
 The public Source catalog is not derived from the preliminary list of sources we matched and fed to calibration: that preliminary list only contains moderately isolated, moderately high signal-to-noise stars, and hence can be matched with little ambiguity (and ambiguous matches can be thrown away).
 The full Source catalog will be produced by redetecting and remeasuring down to 5-sigma depth, so matches between them would be less clean due to additional blending and false positives at the faint end, even though the Source catalog will be built with better PSFs, backgrounds, and other calibrations.
 Obtaining colors and hence inferring SEDs for Sources is difficult at best, and our current plan is simply not to: Source measurements will be made while evaluating the PSF with a fixed nominal (e.g. flat) SED.
+As we will discuss in Section~\ref{sec:sub-band-sed-inference}, this also makes the Source catalog useful for the opposite problem: constraining object SEDs from chromatic PSF effects, especially DCR.
 
 \subsection{Difference Image Analysis}
 
@@ -231,7 +229,7 @@ Image subtraction in the presence of chromatic PSFs needs more than just chromat
 This represents a computationally challenging inference problem to brute-force, but Rubin DM has developed an efficient algorithm with a few simplifying assumptions \citep{DMTN-037, DMTN-121} that has performed reasonably well on simple simulations.
 The bigger problem, at least early in the survey, is that we simply don't expect to have enough visits at different airmasses over enough of the sky to constrain the per-pixel SEDs.
 As a result, we expect to perform image subtraction without correcting for DCR or other chromatic effects until we are a few years into the survey, and will revisit these algorithms then.
-In the meantime, we expect machine learning-based reliability algorithms to do a reasonably good job of rejecting DCR-induced dipoles.
+In the meantime, we expect machine learning-based reliability algorithms to do a reasonably good job of rejecting DCR-induced dipoles from the alert stream.
 
 \section{Sub-band SED Inference from PSFs}
 
@@ -240,7 +238,7 @@ In the meantime, we expect machine learning-based reliability algorithms to do a
 Thus far we have focused on inferring the SEDs of objects from their colors, and then using those SEDs to evaluate or constrain a PSF model.
 The reverse may be possible as well: given multiple observations (especially at different zenith angles and directions) and a wavelength-dependent PSF, it should be possible to constrain the sub-band SEDs of individual objects.
 
-The statistically optimal approach is straightforward in theory: fit a PSF-convolved model to one or more images, while sampling or optimizing parameters that affect the SED, while using those parameters when evaluating the DM-provided wavelength-dependent PSF.
+The statistically optimal approach is straightforward in theory: fit a chromatic-PSF-convolved model to one or more images, while sampling or optimizing parameters that affect the SED.
 This should be quite doable (but expensive at scale) on sets of single-visit images.
 The PSF model is considered part of any Rubin image data product, and that includes its wavelength dependence.
 This approach may also work on coadds, but some of the statistical information about the sub-band SEDs is lost in the coaddition process (and how much depends on details of the observations).
@@ -252,10 +250,10 @@ Matching Sources to Objects also helps considerably in resolving match confusion
 Performing a similar analysis in DIASources instead of Sources may work as well, but only for objects that have enough variability (or sufficiently large DCR shifts) to be detected in difference images in the first place, and the dipoles that result from DCR may be harder to model than the centroid shifts that appear in Sources.
 Unfortunately, there is no information in the Object or Forced Source catalogs that could be used to infer SEDs from chromatic PSFs.
 
-It might be possible to add useful information to Forced Source in the future.
+It might be possible to add useful information to the Forced Source table in the future.
 Forced photometry already involves fitting a PSF model at the position of every Object on every overlapping visit.
 We may be able to also compute the derivatives of the log likelihood of that fit with respect to some parameterization of the SED used to evaluate the PSF model.
-This is at least moderately expensive computationally, and widening the Forced Source table to include them would represent a huge increase in our database storage costs, because there are so many Forced Source rows.
+This is at least moderately expensive computationally, and widening the Forced Source table to include these derivatives would represent a huge increase in our database storage costs, because there are so many Forced Source rows.
 Those derivatives could be summed and included in the Object table instead (derivatives, like convolutions, are linear operators, so they coadd correctly), which would make the storage increase temporary.
 But this would still probably need a strong science justification to be considered, including some simulation work to compare the SNRs of SEDs inferred from this potential measurement to the SNRs from the already-supported approaches described above.
 
